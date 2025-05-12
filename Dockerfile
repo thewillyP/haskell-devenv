@@ -57,7 +57,6 @@ RUN stack install --resolver lts-23.21 \
   haskell-debug-adapter \
   hlint \
   apply-refact \
-  retrie \
   stylish-haskell \
   hoogle \
   ormolu \
