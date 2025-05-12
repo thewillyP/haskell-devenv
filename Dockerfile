@@ -61,7 +61,7 @@ RUN chmod +x /entrypoint.sh
 
 FROM setup AS packages
 
-RUN cabal update && cabal install --haddock-hoogle --minimize-conflict-set haskell-language-server
+RUN cabal update && cabal install --minimize-conflict-set haskell-language-server
 
 
 RUN stack install --resolver lts-23.21 \
@@ -94,12 +94,6 @@ RUN stack install --resolver lts-23.21 \
   mtl \  
   free
 
-
-FROM packages AS hoogle
-
-# Generate hoogle db
-RUN hoogle generate --download --haskell
-  
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD []
