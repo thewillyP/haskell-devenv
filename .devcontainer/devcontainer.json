@@ -1,0 +1,47 @@
+{
+	"name": "HaskellDevEnv",
+	"remoteUser": "vscode",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "devenv",
+	"workspaceFolder": "/workspace",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"haskell.haskell",
+				"phoityne.phoityne-vscode",
+				"eriksik2.vscode-ghci",
+				"jcanero.hoogle-vscode",
+				"mhutchie.git-graph"
+			],
+			"settings": {
+				"haskell.checkProject": true,
+				"haskell.formattingProvider": "ormolu",
+				"haskell.indentationRules.enabled": true,
+				"haskell.manageHLS": "PATH",
+				"haskell.maxCompletions": 40,
+				"haskell.openDocumentationInHackage": false,
+				"haskell.openSourceInHackage": false,
+				"haskell.trace.client": "error",
+				"haskell.trace.server": "off",
+				"hoogle-vscode.useCabalDependencies": true,
+				"editor.formatOnSave": true,
+				"update.showReleaseNotes": false,
+				"git.fetchOnPull": true,
+				"git.autofetch": "all",
+				"git.pruneOnFetch": true,
+				"git.autofetchPeriod": 3600,
+				"githubPullRequests.ignoredPullRequestBranches": [
+					"main"
+				]
+			}
+		}
+	}
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "uname -a",
+	// Configure tool-specific properties.
+	// "customizations": {},
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}

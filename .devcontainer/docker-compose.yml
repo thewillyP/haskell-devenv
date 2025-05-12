@@ -1,0 +1,9 @@
+services:
+  devenv:
+    build: 
+      context: ..
+      dockerfile: Dockerfile
+    container_name: haskell-devenv
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
