@@ -61,6 +61,9 @@ RUN chmod +x /entrypoint.sh
 
 FROM setup AS packages
 
+RUN cabal update && cabal install --haddock-hoogle --minimize-conflict-set haskell-language-server
+
+
 RUN stack install --resolver lts-23.21 \
   haskell-dap \
   ghci-dap \
@@ -90,9 +93,6 @@ RUN stack install --resolver lts-23.21 \
   extra \  
   mtl \  
   free
-
-
-RUN cabal update && cabal install --haddock-hoogle --minimize-conflict-set haskell-language-server
 
 
 FROM packages AS hoogle
