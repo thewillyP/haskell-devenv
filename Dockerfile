@@ -1,4 +1,4 @@
-FROM haskell:9.12.2 AS base
+FROM haskell:9.8.4 AS base
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -51,7 +51,7 @@ RUN chmod +x /entrypoint.sh
 
 FROM setup AS packages
 
-RUN stack install --resolver ghc-9.12.2 \
+RUN stack install --resolver lts-23.21 \
   haskell-dap \
   ghci-dap \
   haskell-debug-adapter \
