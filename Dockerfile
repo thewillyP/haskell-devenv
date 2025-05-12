@@ -1,4 +1,4 @@
-FROM haskell:9.10.2 AS base
+FROM haskell:9.10-slim-buster AS base
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -51,7 +51,7 @@ RUN chmod +x /entrypoint.sh
 
 FROM setup AS packages
 
-RUN stack install --resolver ghc-9.10.2 \
+RUN stack install --resolver nightly-2025-05-05 \
   haskell-dap \
   ghci-dap \
   haskell-debug-adapter \
