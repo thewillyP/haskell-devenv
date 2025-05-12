@@ -1,4 +1,4 @@
-FROM haskell:9.12.2 as base
+FROM haskell:9.12.2 AS base
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -22,22 +22,22 @@ RUN apt-get update \
     tigervnc-standalone-server \
     tigervnc-common \
     tigervnc-tools \
-    libsdl2-2.0-0 \
-    libsdl2-dev \
-    libsdl2-mixer-2.0-0 \
-    libsdl2-mixer-dev \
-    libsdl2-image-2.0-0 \
-    libsdl2-image-dev \
-    libsdl2-ttf-2.0-0 \
-    libsdl2-ttf-dev \
-    libsdl2-net-2.0-0 \
-    libsdl2-net-dev \
-    libsdl2-gpu-2.0-0 \
-    libsdl2-gpu-dev \
+    # libsdl2-2.0-0 \
+    # libsdl2-dev \
+    # libsdl2-mixer-2.0-0 \
+    # libsdl2-mixer-dev \
+    # libsdl2-image-2.0-0 \
+    # libsdl2-image-dev \
+    # libsdl2-ttf-2.0-0 \
+    # libsdl2-ttf-dev \
+    # libsdl2-net-2.0-0 \
+    # libsdl2-net-dev \
+    # libsdl2-gpu-2.0-0 \
+    # libsdl2-gpu-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-FROM base as setup
+FROM base AS setup
 
 SHELL ["/bin/bash", "-c"]
 
@@ -49,7 +49,7 @@ COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
 
-FROM setup as packages
+FROM setup AS packages
 
 RUN cabal install exe:haskell-language-server
 
