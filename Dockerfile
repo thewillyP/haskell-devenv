@@ -1,4 +1,4 @@
-FROM haskell:9.12.2 AS base
+FROM haskell:9.10.2 AS base
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -51,9 +51,7 @@ RUN chmod +x /entrypoint.sh
 
 FROM setup AS packages
 
-RUN cabal update && cabal install haskell-language-server
-
-RUN stack install \
+RUN stack install --resolver ghc-9.10.2 \
   haskell-dap \
   ghci-dap \
   haskell-debug-adapter \
@@ -62,7 +60,30 @@ RUN stack install \
   retrie \
   stylish-haskell \
   hoogle \
-  ormolu
+  ormolu \
+  beam-core \ 
+  beam-sqlite \
+  hspec \
+  QuickCheck \
+  quickcheck-classes \
+  linear \
+  sdl2 \  
+  vector \  
+  transformers \  
+  monad-loops \  
+  deque \  
+  optics \  
+  apecs \  
+  random \  
+  containers \  
+  pqueue \  
+  template-haskell \  
+  extra \  
+  mtl \  
+  free
+
+
+RUN cabal update && cabal install --haddock-hoogle --minimize-conflict-set haskell-language-server
 
 
 FROM packages AS hoogle

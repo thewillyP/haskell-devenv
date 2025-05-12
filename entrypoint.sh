@@ -1,5 +1,15 @@
 #!/bin/bash
 
+### Getting Permissions
+
+rm -rf /haskell/*
+mkdir -p /haskell
+
+# Copy files for user to get permissions
+cp -r /workspace/* /haskell/
+
+### VNC
+
 # Set up VNC password
 mkdir -p ~/.vnc
 echo "$VNC_PASSWORD" | vncpasswd -f > ~/.vnc/passwd
@@ -8,6 +18,8 @@ chmod 600 ~/.vnc/passwd
 # Start VNC server in the background, bound to localhost
 vncserver "$DISPLAY" -geometry "$GEOMETRY" -depth "$DEPTH" -localhost yes &
 
+
+### SSH Server
 
 # BIG: ASSUMES YOU OVERLAY THE $USER'S .ssh folder into the container. WILL NOT WORK IF YOU DON'T
 
