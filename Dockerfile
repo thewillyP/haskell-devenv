@@ -1,4 +1,4 @@
-FROM haskell:9.10-slim-buster AS base
+FROM haskell:9.12.2 AS base
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -21,6 +21,7 @@ RUN apt-get update \
     xfce4-goodies \
     tigervnc-standalone-server \
     tigervnc-common \
+    tigervnc-tools \
     libsdl2-2.0-0 \
     libsdl2-dev \
     # libsdl2-mixer-2.0-0 \
@@ -50,7 +51,7 @@ RUN chmod +x /entrypoint.sh
 
 FROM setup AS packages
 
-RUN stack install --resolver nightly-2025-05-05 \
+RUN stack install --resolver ghc-9.12.2 \
   haskell-dap \
   ghci-dap \
   haskell-debug-adapter \
