@@ -21,19 +21,29 @@ RUN apt-get update \
     xfce4-goodies \
     tigervnc-standalone-server \
     tigervnc-common \
-    # tigervnc-tools \
-    libsdl2-2.0-0 \
-    libsdl2-dev \
-    # libsdl2-mixer-2.0-0 \
-    # libsdl2-mixer-dev \
-    # libsdl2-image-2.0-0 \
-    # libsdl2-image-dev \
-    # libsdl2-ttf-2.0-0 \
-    # libsdl2-ttf-dev \
-    # libsdl2-net-2.0-0 \
-    # libsdl2-net-dev \
-    # libsdl2-gpu-2.0-0 \
-    # libsdl2-gpu-dev \
+    # Dependencies for building SDL2
+    cmake \
+    libx11-dev \
+    libxcursor-dev \
+    libxi-dev \
+    libxrandr-dev \
+    libxss-dev \
+    libgl1-mesa-dev \
+    libasound2-dev \
+    libpulse-dev \
+    libudev-dev \
+    && mkdir -p /usr/local/src \
+    && cd /usr/local/src \
+    && wget https://www.libsdl.org/release/SDL2-2.30.8.tar.gz \
+    && tar -xvzf SDL2-2.30.8.tar.gz \
+    && cd SDL2-2.30.8 \
+    && mkdir build \
+    && cd build \
+    && cmake .. \
+    && make -j$(nproc) \
+    && make install \
+    && cd / \
+    && rm -rf /usr/local/src/SDL2-2.30.8* \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
