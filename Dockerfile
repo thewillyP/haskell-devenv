@@ -53,6 +53,8 @@ SHELL ["/bin/bash", "-c"]
 
 RUN mkdir /var/run/sshd
 
+WORKDIR /workspace
+
 COPY .vscode /workspace/.vscode
 
 COPY entrypoint.sh /entrypoint.sh

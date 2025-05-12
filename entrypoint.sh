@@ -16,7 +16,7 @@ echo "$VNC_PASSWORD" | tigervncpasswd -f > ~/.vnc/passwd
 chmod 600 ~/.vnc/passwd
 
 # Start VNC server in the background, bound to localhost
-vncserver "$DISPLAY" -geometry "$GEOMETRY" -depth "$DEPTH" -localhost yes &
+vncserver -localhost yes &
 
 
 ### SSH Server
