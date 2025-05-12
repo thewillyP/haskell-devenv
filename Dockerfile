@@ -22,8 +22,8 @@ RUN apt-get update \
     tigervnc-standalone-server \
     tigervnc-common \
     tigervnc-tools \
-    # libsdl2-2.0-0 \
-    # libsdl2-dev \
+    libsdl2-2.0-0 \
+    libsdl2-dev \
     # libsdl2-mixer-2.0-0 \
     # libsdl2-mixer-dev \
     # libsdl2-image-2.0-0 \
@@ -51,7 +51,7 @@ RUN chmod +x /entrypoint.sh
 
 FROM setup AS packages
 
-RUN cabal install exe:haskell-language-server
+RUN cabal install haskell-language-server
 
 RUN stack install \
   haskell-dap \
