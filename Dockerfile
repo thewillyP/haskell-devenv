@@ -65,6 +65,7 @@ RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) &&
       xfce4-goodies \
       tigervnc-standalone-server \
       tigervnc-common \
+      tigervnc-tools \
       openssh-server \
       pandoc \
       # SDL2 + graphics/audio dev headers
