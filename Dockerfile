@@ -59,6 +59,7 @@ RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) &&
       libncurses5 \
       libnuma1 \
       libtinfo5 \
+      pkg-config \
       # GUI & VNC
       xfce4 \
       xfce4-goodies \
