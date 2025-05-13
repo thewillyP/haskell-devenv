@@ -82,7 +82,7 @@ RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) &&
       libudev-dev && \
   rm -rf /var/lib/apt/lists/*
 
-FROM base as sdl2
+FROM base AS sdl2
 
 # Install SDL2
 RUN mkdir -p /usr/local/src && cd /usr/local/src && \
@@ -97,7 +97,7 @@ RUN mkdir -p /usr/local/src && cd /usr/local/src && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 
-FROM sdl2 as setup 
+FROM sdl2 AS setup 
 
 SHELL ["/bin/bash", "-c"]
 RUN mkdir /var/run/sshd
@@ -112,7 +112,7 @@ ENV BOOTSTRAP_HASKELL_NONINTERACTIVE=yes \
 
 # Install GHCup to /opt/ghcup
 RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh && \
-    ln -s /opt/ghcup/bin/* /usr/local/bin/
+    ln -s /opt/.ghcup/bin/* /usr/local/bin/
 
 # Install GHC, Cabal, Stack, and HLS
 ARG GHC_VERSION="9.8.4"
