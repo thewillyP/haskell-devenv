@@ -3,7 +3,7 @@ FROM debian:bookworm-slim AS base
 ENV LANG=C.UTF-8
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    LLVM_VERSION=17
+    LLVM_VERSION=15
 
 RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) && \
   apt-get update && \
@@ -108,11 +108,14 @@ FROM setup AS tooling
 
 ENV BOOTSTRAP_HASKELL_NONINTERACTIVE=yes \
     BOOTSTRAP_HASKELL_NO_UPGRADE=yes \
+    BOOTSTRAP_HASKELL_MINIMAL=yes \
     GHCUP_INSTALL_BASE_PREFIX=/opt
 
 # Install GHCup to /opt/ghcup
-RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh && \
-    ln -s /opt/.ghcup/bin/* /usr/local/bin/
+RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+
+# Set PATH to include GHCup and Cabal binaries
+ENV PATH="/opt/.ghcup/bin:/opt/.cabal/bin:$PATH"
 
 # Install GHC, Cabal, Stack, and HLS
 ARG GHC_VERSION="9.8.4"
@@ -121,6 +124,9 @@ RUN ghcup install cabal recommended --set
 RUN ghcup install stack recommended --set
 RUN ghcup install hls recommended --set
 RUN cabal update
+
+RUN ln -s /opt/.ghcup/bin/* /usr/local/bin/ && \
+    ln -s /opt/.cabal/bin/* /usr/local/bin/
 
 FROM tooling AS packages
 
