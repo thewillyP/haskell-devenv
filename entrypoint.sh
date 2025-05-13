@@ -12,7 +12,7 @@ cp -R /workspace/ /haskell
 
 # Set up VNC password
 mkdir -p ~/.vnc
-echo "$VNC_PASSWORD" | tigervncpasswd -f > ~/.vnc/passwd
+echo "$VNC_PASSWORD" | vncpasswd -f > ~/.vnc/passwd
 chmod 600 ~/.vnc/passwd
 
 # Start VNC server in the background, bound to localhost
