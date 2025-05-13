@@ -79,7 +79,7 @@ RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) &&
       libudev-dev && \
   rm -rf /var/lib/apt/lists/*
 
-FROM base as SDL2
+FROM base as sdl2
 
 # Install SDL2
 RUN mkdir -p /usr/local/src && cd /usr/local/src && \
@@ -94,7 +94,7 @@ RUN mkdir -p /usr/local/src && cd /usr/local/src && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 
-FROM SDL2 as setup 
+FROM sdl2 as setup 
 
 SHELL ["/bin/bash", "-c"]
 RUN mkdir /var/run/sshd
