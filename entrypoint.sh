@@ -6,7 +6,7 @@ rm -rf /haskell/*
 mkdir -p /haskell
 
 # Copy files for user to get permissions
-cp -r /workspace/* /haskell/
+cp -R /workspace/ /haskell
 
 ### VNC
 
