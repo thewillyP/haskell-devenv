@@ -63,6 +63,7 @@ RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) &&
       # GUI & VNC
       xfce4 \
       xfce4-goodies \
+      dbus-x11 \
       tigervnc-standalone-server \
       tigervnc-common \
       tigervnc-tools \
@@ -103,16 +104,15 @@ RUN mkdir /var/run/sshd
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-
 FROM setup AS tooling
 
 ENV BOOTSTRAP_HASKELL_NONINTERACTIVE=yes \
-    BOOTSTRAP_HASKELL_NO_UPGRADE=yes
+    BOOTSTRAP_HASKELL_NO_UPGRADE=yes \
+    GHCUP_INSTALL_BASE_PREFIX=/opt
 
-# Install ghcup
-RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
-
-ENV PATH="/root/.ghcup/bin:/root/.cabal/bin:$PATH"
+# Install GHCup to /opt/ghcup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh && \
+    ln -s /opt/ghcup/bin/* /usr/local/bin/
 
 # Install GHC, Cabal, Stack, and HLS
 ARG GHC_VERSION="9.8.4"
