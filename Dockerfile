@@ -5,10 +5,38 @@ ENV LANG C.UTF-8
 # Install common Haskell + Stack dependencies and SDL2 build dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        openssh-server \
+        apt-utils \
+        bash \
+        build-essential \
         ca-certificates \
         curl \
-        dpkg-dev \
+        wget \
         git \
+        nano \
+        zip \
+        htop \
+        lsof \
+        strace \
+        man \
+        pandoc \
+        xfce4 \
+        xfce4-goodies \
+        tigervnc-standalone-server \
+        tigervnc-common \
+        # Dependencies for building SDL2
+        cmake \
+        libx11-dev \
+        libxcursor-dev \
+        libxi-dev \
+        libxrandr-dev \
+        libxss-dev \
+        libgl1-mesa-dev \
+        libasound2-dev \
+        libpulse-dev \
+        libudev-dev \
+        # Additional packages
+        dpkg-dev \
         gcc \
         gnupg \
         g++ \
@@ -20,29 +48,7 @@ RUN apt-get update && \
         make \
         netbase \
         xz-utils \
-        zlib1g-dev \
-        libx11-dev \
-        libxcursor-dev \
-        libxi-dev \
-        libxrandr-dev \
-        libxss-dev \
-        libgl1-mesa-dev \
-        libasound2-dev \
-        libpulse-dev \
-        libudev-dev \
-        tigervnc-standalone-server \
-        tigervnc-common \
-        tigervnc-tools \
-        nano \
-        zip \
-        htop \
-        lsof \
-        strace \
-        man \
-        pandoc \
-        xfce4 \
-        xfce4-goodies \
-        build-essential && \
+        zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install SDL2 (as per your original Dockerfile)
