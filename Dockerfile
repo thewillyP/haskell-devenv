@@ -1,13 +1,13 @@
 FROM debian:bookworm-slim AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends locales && \
-    locale-gen C.UTF-8 && \
-    update-locale LANG=C.UTF-8 && \
+    locale-gen C.utf8 en_US.UTF-8 && \
+    update-locale LANG=C.utf8 && \
     rm -rf /var/lib/apt/lists/*
 
 # Set environment variables to avoid locale warnings
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
+ENV LC_ALL=C.utf8
+ENV LANG=C.utf8
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LLVM_VERSION=15
