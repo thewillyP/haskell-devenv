@@ -1,54 +1,85 @@
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim AS base
 
 ENV LANG=C.UTF-8
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        openssh-server \
-        apt-utils \
-        bash \
-        build-essential \
-        ca-certificates \
-        curl \
-        wget \
-        git \
-        nano \
-        zip \
-        htop \
-        lsof \
-        strace \
-        man \
-        pandoc \
-        xfce4 \
-        xfce4-goodies \
-        tigervnc-standalone-server \
-        tigervnc-common \
-        # Dependencies for building SDL2
-        cmake \
-        libx11-dev \
-        libxcursor-dev \
-        libxi-dev \
-        libxrandr-dev \
-        libxss-dev \
-        libgl1-mesa-dev \
-        libasound2-dev \
-        libpulse-dev \
-        libudev-dev \
-        # Common Haskell + Stack dependencies
-        dpkg-dev \
-        gcc \
-        gnupg \
-        g++ \
-        libc6-dev \
-        libffi-dev \
-        libgmp-dev \
-        libnuma-dev \
-        libtinfo-dev \
-        make \
-        netbase \
-        xz-utils \
-        zlib1g-dev && \
-    rm -rf /var/lib/apt/lists/*
+ENV DEBIAN_FRONTEND=noninteractive \
+    LLVM_VERSION=17
+
+RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends \
+      software-properties-common \
+      wget && \
+  # LLVM repository needs to be added twice for it to work (unknown issue)
+  add-apt-repository -y -s -n "deb http://apt.llvm.org/${VERSION_CODENAME}/ llvm-toolchain-${VERSION_CODENAME}-${LLVM_VERSION} main" && \
+  add-apt-repository -y -s -n "deb http://apt.llvm.org/${VERSION_CODENAME}/ llvm-toolchain-${VERSION_CODENAME}-${LLVM_VERSION} main" && \
+  wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends \
+      # Base utilities and dev tools
+      apt-utils \
+      bash \
+      build-essential \
+      ca-certificates \
+      curl \
+      git \
+      gnupg \
+      gcc \
+      g++ \
+      make \
+      sudo \
+      nano \
+      zip \
+      htop \
+      lsof \
+      strace \
+      man \
+      procps \
+      lsb-release \
+      xz-utils \
+      zlib1g-dev \
+      netbase \
+      dpkg-dev \
+      # LLVM components
+      clang-$LLVM_VERSION \
+      lldb-$LLVM_VERSION \
+      lld-$LLVM_VERSION \
+      clangd-$LLVM_VERSION \
+      # Haskell and system-level deps
+      libffi-dev \
+      libgmp-dev \
+      libnuma-dev \
+      libtinfo-dev \
+      libc6-dev \
+      # Extra runtime deps
+      libffi8 \
+      libgmp10 \
+      libicu-dev \
+      libncurses-dev \
+      libncurses5 \
+      libnuma1 \
+      libtinfo5 \
+      # GUI & VNC
+      xfce4 \
+      xfce4-goodies \
+      tigervnc-standalone-server \
+      tigervnc-common \
+      openssh-server \
+      pandoc \
+      # SDL2 + graphics/audio dev headers
+      cmake \
+      libx11-dev \
+      libxcursor-dev \
+      libxi-dev \
+      libxrandr-dev \
+      libxss-dev \
+      libgl1-mesa-dev \
+      libasound2-dev \
+      libpulse-dev \
+      libudev-dev && \
+  rm -rf /var/lib/apt/lists/*
+
+FROM base as SDL2
 
 # Install SDL2
 RUN mkdir -p /usr/local/src && cd /usr/local/src && \
@@ -62,12 +93,24 @@ RUN mkdir -p /usr/local/src && cd /usr/local/src && \
     cd / && rm -rf /usr/local/src/SDL2-2.30.8* && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install ghcup
-RUN mkdir -p /root/.ghcup/bin && \
-    curl -LJ "https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup" -o "/root/.ghcup/bin/ghcup" && \
-    chmod +x "/root/.ghcup/bin/ghcup"
 
-# Add ghcup and cabal to PATH
+FROM SDL2 as setup 
+
+SHELL ["/bin/bash", "-c"]
+RUN mkdir /var/run/sshd
+COPY entrypoint.sh /entrypoint.sh
+COPY .vscode /workspace/.vscode
+RUN chmod +x /entrypoint.sh
+
+
+FROM setup AS tooling
+
+ENV BOOTSTRAP_HASKELL_NONINTERACTIVE=yes \
+    BOOTSTRAP_HASKELL_NO_UPGRADE=yes
+
+# Install ghcup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+
 ENV PATH="/root/.ghcup/bin:/root/.cabal/bin:$PATH"
 
 # Install GHC, Cabal, Stack, and HLS
@@ -78,10 +121,11 @@ RUN ghcup install stack recommended --set
 RUN ghcup install hls recommended --set
 RUN cabal update
 
-# Copy VSCode settings and entrypoint
-COPY entrypoint.sh /entrypoint.sh
-COPY .vscode /workspace/.vscode
-RUN chmod +x /entrypoint.sh
+FROM tooling AS packages
+
+# Set global defaults for stack.
+RUN stack config set install-ghc false --global && \
+    stack config set system-ghc true --global  
 
 # Install Haskell packages with Stack
 RUN stack install --resolver lts-23.21 \
@@ -92,27 +136,27 @@ RUN stack install --resolver lts-23.21 \
     apply-refact \
     stylish-haskell \
     hoogle \
-    ormolu \
-    beam-core \
-    beam-sqlite \
-    hspec \
-    QuickCheck \
-    quickcheck-classes \
-    linear \
-    sdl2 \
-    vector \
-    transformers \
-    monad-loops \
-    deque \
-    optics \
-    apecs \
-    random \
-    containers \
-    pqueue \
-    template-haskell \
-    extra \
-    mtl \
-    free
+    ormolu
+    # beam-core \
+    # beam-sqlite \
+    # hspec \
+    # QuickCheck \
+    # quickcheck-classes \
+    # linear \
+    # sdl2 \
+    # vector \
+    # transformers \
+    # monad-loops \
+    # deque \
+    # optics \
+    # apecs \
+    # random \
+    # containers \
+    # pqueue \
+    # template-haskell \
+    # extra \
+    # mtl \
+    # free
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD []
