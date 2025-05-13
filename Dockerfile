@@ -47,6 +47,7 @@ RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) &&
       zlib1g-dev \
       netbase \
       dpkg-dev \
+      sqlite3 \
       # LLVM components
       clang-$LLVM_VERSION \
       lldb-$LLVM_VERSION \
