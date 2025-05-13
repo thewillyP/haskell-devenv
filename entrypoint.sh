@@ -1,12 +1,5 @@
 #!/bin/bash
 
-### Getting Permissions
-
-rm -rf /haskell/*
-mkdir -p /haskell
-
-# Copy files for user to get permissions
-cp -R /workspace/ /haskell
 
 ### VNC
 

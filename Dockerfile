@@ -101,7 +101,6 @@ FROM sdl2 as setup
 SHELL ["/bin/bash", "-c"]
 RUN mkdir /var/run/sshd
 COPY entrypoint.sh /entrypoint.sh
-COPY .vscode /workspace/.vscode
 RUN chmod +x /entrypoint.sh
 
 

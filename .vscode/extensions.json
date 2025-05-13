@@ -1,9 +1,0 @@
-{
-    "recommendations": [
-      "haskell.haskell",
-      "phoityne.phoityne-vscode",
-      "eriksik2.vscode-ghci",
-      "jcanero.hoogle-vscode",
-      "mhutchie.git-graph"
-    ]
-  }
