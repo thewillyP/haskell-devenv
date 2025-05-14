@@ -77,6 +77,7 @@ RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) &&
       pandoc \
       # SDL2 + graphics/audio dev headers
       cmake \
+      libsdl2-dev \
       libx11-dev \
       libxcursor-dev \
       libxi-dev \
