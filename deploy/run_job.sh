@@ -27,8 +27,6 @@ sbatch <<EOF
 ${SLURM_DEPENDENCY}
 #SBATCH --output=${LOG_DIR}/run-${IMAGE}-%j.out
 #SBATCH --error=${LOG_DIR}/run-${IMAGE}-%j.err
-#SBATCH --mail-type=BEGIN
-#SBATCH --mail-user=${SSH_USER}@nyu.edu
 
 singularity run --containall --cleanenv --no-home \\
   --overlay ${OVERLAY_PATH}:rw \\
