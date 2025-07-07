@@ -1,12 +1,22 @@
 @Library('singularity_template@main') _
 
+properties([
+    parameters([
+        booleanParam(
+            name: 'forceRebuild',
+            defaultValue: false,
+            description: 'Force rebuild of the Singularity image'
+        )
+    ])
+])
+
 def defaults = [
     sshUser: 'wlp9800',
     image: 'haskell-devenv',
     scratchDir: '/scratch/wlp9800',
     logDir: '/vast/wlp9800/logs',
     dockerUrl: 'docker://thewillyp/haskell-devenv',
-    forceRebuild: false,
+    forceRebuild: params.forceRebuild,
     overlaySrc: '/scratch/wlp9800/haskell-devenv.ext3',
     buildTime: '00:30:00',
     buildCPUs: '8',
