@@ -1,84 +1,54 @@
+@Library('singularity_template@main') _
+
+def defaults = [
+    sshUser: 'wlp9800',
+    image: 'haskell-devenv',
+    scratchDir: '/scratch/wlp9800',
+    logDir: '/vast/wlp9800/logs',
+    dockerUrl: 'docker://thewillyp/haskell-devenv',
+    forceRebuild: false,
+    overlaySrc: '/scratch/wlp9800/haskell-devenv.ext3',
+    buildTime: '00:30:00',
+    buildCPUs: '8',
+    buildMem: '10G',
+    runTime: '06:00:00',
+    runCPUs: '4',
+    runMem: '14G',
+    entrypointUrl: 'https://raw.githubusercontent.com/thewillyP/haskell-devenv/master/entrypoint.sh',
+    binds: "/home/wlp9800/dev/asteroids:/home/wlp9800/asteroids",
+    useGpu: false 
+]
+
 pipeline {
     agent any
 
-    parameters {
-        booleanParam(name: 'FORCE_REBUILD', defaultValue: false, description: 'Force rebuild of the Singularity image')
-        string(name: 'EXTRA_ENV_VARS', defaultValue: '', description: 'Comma-separated key=value pairs for additional environment variables (e.g., KEY1=VALUE1,KEY2=VALUE2)')
-    }
-
-    environment {
-        SSH_USER = 'wlp9800'
-        IMAGE = 'haskell-devenv'
-        SCRATCH_DIR = "/scratch/${SSH_USER}"
-        LOG_DIR = "/vast/${SSH_USER}/logs"
-        SIF_PATH = "${SCRATCH_DIR}/images/${IMAGE}.sif"
-        OVERLAY_PATH = "${SCRATCH_DIR}/${IMAGE}.ext3"
-        OVERLAY_TYPE = 'overlay-50G-10M.ext3'
-        DOCKER_URL = "docker://thewillyp/${IMAGE}"
-        TMP_DIR = "${SCRATCH_DIR}/tmp"
-        SCRIPT_BASE_URL = 'https://raw.githubusercontent.com/thewillyP/haskell-devenv/master/deploy'
-    }
-
     stages {
-        stage('Get Current Executor Hostname') {
+        stage('Detect Hostname') {
             steps {
                 script {
                     env.EXEC_HOST = sh(script: "hostname", returnStdout: true).trim()
-                    echo "Running on host: ${env.EXEC_HOST}"
+                    echo "Executor host: ${env.EXEC_HOST}"
                 }
             }
         }
 
-        stage('Cancel Queued Jobs') {
-            steps {
-                sh """
-                ssh -o StrictHostKeyChecking=no ${SSH_USER}@${EXEC_HOST} 'curl -s ${SCRIPT_BASE_URL}/cancel_jobs.sh | bash -s ${SSH_USER} ${IMAGE}'
-                """
-            }
-        }
-
-        stage('Build Image with sbatch if needed') {
+        stage('Run Singularity Pipeline') {
             steps {
                 script {
-                    def exists = sh(
-                        script: "ssh -o StrictHostKeyChecking=no ${SSH_USER}@${EXEC_HOST} '[ -f ${SIF_PATH} ] && echo exists || echo missing'",
-                        returnStdout: true
-                    ).trim()
-
-                    if (params.FORCE_REBUILD || exists == "missing") {
-                        echo "Submitting sbatch build job for image..."
-                        def buildOutput = sh(
-                            script: """
-                            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${EXEC_HOST} 'curl -s ${SCRIPT_BASE_URL}/build_image.sh | bash -s ${SCRATCH_DIR} ${OVERLAY_PATH} ${SIF_PATH} ${DOCKER_URL} ${LOG_DIR} ${IMAGE} ${OVERLAY_TYPE}'
-                            """,
-                            returnStdout: true
-                        ).trim()
-                        env.BUILD_JOB_ID = (buildOutput =~ /Submitted batch job (\d+)/)?.getAt(0)?.getAt(1) ?: ""
-                        echo "Build job submitted with ID: ${env.BUILD_JOB_ID}"
-                    } else {
-                        echo "Singularity image already exists: ${SIF_PATH}. Skipping build."
-                        env.BUILD_JOB_ID = ""
-                    }
+                    def runJobId = singularityPipeline(defaults)
+                    echo "Singularity run job id: ${runJobId}"
+                    env.RUN_JOB_ID = runJobId
                 }
             }
         }
 
-        stage('Prepare TMP Directory') {
+        stage('Submit DNS Update Job') {
             steps {
-                sh """
-                ssh -o StrictHostKeyChecking=no ${SSH_USER}@${EXEC_HOST} 'mkdir -p ${TMP_DIR}'
-                """
-                echo "TMP directory ${TMP_DIR} created"
-            }
-        }
-
-        stage('Run Job via sbatch') {
-            steps {
-                withCredentials([
-                    string(credentialsId: 'vnc_password', variable: 'VNC_PASSWORD')
-                ]) {
+                script {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${SSH_USER}@${EXEC_HOST} 'curl -s ${SCRIPT_BASE_URL}/run_job.sh | bash -s "${LOG_DIR}" "${SIF_PATH}" "${OVERLAY_PATH}" "${SSH_USER}" "${env.BUILD_JOB_ID}" "${VNC_PASSWORD}" "${IMAGE}" "${TMP_DIR}" "${params.EXTRA_ENV_VARS}"'
+                    ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} \\
+                      'curl -fsSL https://raw.githubusercontent.com/thewillyP/jenkins/main/submit_dns_job.sh | \\
+                      bash -s ${env.RUN_JOB_ID} ${defaults.image} ${defaults.logDir} dns-update-${defaults.image} 1G 00:05:00 1 ${defaults.sshUser}'
                     """
                 }
             }

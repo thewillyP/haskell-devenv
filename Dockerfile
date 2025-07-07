@@ -173,5 +173,3 @@ RUN stack install --resolver lts-23.21 \
     # mtl \
     # free
 
-ENTRYPOINT ["/entrypoint.sh"]
-CMD []
