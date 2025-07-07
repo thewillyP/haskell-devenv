@@ -2,11 +2,15 @@
 
 properties([
     parameters([
-        booleanParam(
-            name: 'forceRebuild',
-            defaultValue: false,
-            description: 'Force rebuild of the Singularity image'
-        )
+        booleanParam(name: 'forceRebuild', defaultValue: false, description: 'Force rebuild of the Singularity image'),
+        string(name: 'buildTime', defaultValue: '00:30:00', description: 'Build job time limit'),
+        string(name: 'buildCPUs', defaultValue: '8', description: 'CPUs to allocate for build'),
+        string(name: 'buildMem', defaultValue: '10G', description: 'Memory to allocate for build'),
+        string(name: 'runTime', defaultValue: '06:00:00', description: 'Run job time limit'),
+        string(name: 'runCPUs', defaultValue: '4', description: 'CPUs to allocate for run'),
+        string(name: 'runMem', defaultValue: '14G', description: 'Memory to allocate for run'),
+        string(name: 'binds', defaultValue: '/home/wlp9800/dev/asteroids:/home/wlp9800/asteroids', description: 'Bind paths for Singularity'),
+        booleanParam(name: 'useGpu', defaultValue: false, description: 'Use GPU in the Singularity container')
     ])
 ])
 
@@ -16,17 +20,19 @@ def defaults = [
     scratchDir: '/scratch/wlp9800',
     logDir: '/vast/wlp9800/logs',
     dockerUrl: 'docker://thewillyp/haskell-devenv',
-    forceRebuild: params.forceRebuild,
     overlaySrc: '/scratch/wlp9800/haskell-devenv.ext3',
-    buildTime: '00:30:00',
-    buildCPUs: '8',
-    buildMem: '10G',
-    runTime: '06:00:00',
-    runCPUs: '4',
-    runMem: '14G',
     entrypointUrl: 'https://raw.githubusercontent.com/thewillyP/haskell-devenv/master/entrypoint.sh',
-    binds: "/home/wlp9800/dev/asteroids:/home/wlp9800/asteroids",
-    useGpu: false 
+
+    // Parameterized
+    forceRebuild: params.forceRebuild,
+    buildTime: params.buildTime,
+    buildCPUs: params.buildCPUs,
+    buildMem: params.buildMem,
+    runTime: params.runTime,
+    runCPUs: params.runCPUs,
+    runMem: params.runMem,
+    binds: params.binds,
+    useGpu: params.useGpu
 ]
 
 pipeline {
