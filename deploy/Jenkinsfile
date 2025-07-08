@@ -43,7 +43,7 @@ pipeline {
             steps {
                 script {
                     env.EXEC_HOST = sh(script: "hostname", returnStdout: true).trim()
-                    env.LOCAL_SCRIPT_DIR = sh(script: 'echo /tmp/${RANDOM}${RANDOM}', returnStdout: true).trim()
+                    env.LOCAL_SCRIPT_DIR = "/tmp/${sh(script: 'head /dev/urandom | tr -dc a-z0-9 | head -c 8', returnStdout: true).trim()}"
                     echo "Executor Host: ${env.EXEC_HOST}"
                     echo "Local Script Directory: ${env.LOCAL_SCRIPT_DIR}"
                 }
