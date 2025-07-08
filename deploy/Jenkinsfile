@@ -38,6 +38,11 @@ def defaults = [
 pipeline {
     agent any
 
+    environment {
+        EXEC_HOST = sh(script: "hostname", returnStdout: true).trim()
+        LOCAL_SCRIPT_DIR = "/tmp/jenkins_main_scripts"
+    }
+
     stages {
         stage('Checkout Scripts') {
             steps {
@@ -47,20 +52,10 @@ pipeline {
                     userRemoteConfigs: [[url: 'https://github.com/thewillyP/jenkins.git']]
                 ])
                 script {
-                    env.EXEC_HOST = sh(script: "hostname", returnStdout: true).trim()
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} 'mkdir -p /tmp/jenkins_scripts'
-                    scp -o StrictHostKeyChecking=no submit_dns_job.sh ${defaults.sshUser}@${env.EXEC_HOST}:/tmp/jenkins_scripts/
+                        ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${EXEC_HOST} 'mkdir -p ${LOCAL_SCRIPT_DIR}'
+                        scp -o StrictHostKeyChecking=no submit_dns_job.sh ${defaults.sshUser}@${EXEC_HOST}:${LOCAL_SCRIPT_DIR}/
                     """
-                }
-            }
-        }
-
-        stage('Detect Hostname') {
-            steps {
-                script {
-                    env.EXEC_HOST = sh(script: "hostname", returnStdout: true).trim()
-                    echo "Executor host: ${env.EXEC_HOST}"
                 }
             }
         }
@@ -79,9 +74,9 @@ pipeline {
             steps {
                 script {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} \\
-                    'bash /tmp/jenkins_scripts/submit_dns_job.sh \\
-                    ${env.RUN_JOB_ID} ${defaults.image} ${defaults.logDir} dns-update-${defaults.image} 1G 00:05:00 1 ${defaults.sshUser}'
+                        ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${EXEC_HOST} \\
+                        'bash ${LOCAL_SCRIPT_DIR}/submit_dns_job.sh \\
+                        ${env.RUN_JOB_ID} ${defaults.image} ${defaults.logDir} dns-update-${defaults.image} 1G 00:05:00 1 ${defaults.sshUser}'
                     """
                 }
             }
@@ -91,7 +86,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} 'rm -rf /tmp/jenkins_scripts'
+                        ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${EXEC_HOST} 'rm -rf ${LOCAL_SCRIPT_DIR}'
                     """
                 }
             }
