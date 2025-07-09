@@ -41,6 +41,7 @@ RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) &&
       lsof \
       strace \
       man \
+      less \
       procps \
       lsb-release \
       xz-utils \
