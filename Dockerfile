@@ -29,12 +29,14 @@ RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) &&
       curl \
       git \
       gnupg \
+      pinentry-curses \
       gcc \
       g++ \
       make \
       sudo \
       nano \
       zip \
+      unzip \
       htop \
       lsof \
       strace \
@@ -89,6 +91,13 @@ RUN VERSION_CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d'=' -f2) &&
       libpulse-dev \
       libudev-dev && \
   rm -rf /var/lib/apt/lists/*
+RUN gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys A6310ACC4672475C && \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    curl -o awscliv2.sig https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip.sig && \
+    gpg --verify awscliv2.sig awscliv2.zip && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    rm -rf awscliv2.zip awscliv2.sig aws
 
 FROM base AS sdl2
 
@@ -152,24 +161,3 @@ RUN stack install --resolver lts-23.21 \
     stylish-haskell \
     hoogle \
     ormolu
-    # beam-core \
-    # beam-sqlite \
-    # hspec \
-    # QuickCheck \
-    # quickcheck-classes \
-    # linear \
-    # sdl2 \
-    # vector \
-    # transformers \
-    # monad-loops \
-    # deque \
-    # optics \
-    # apecs \
-    # random \
-    # containers \
-    # pqueue \
-    # template-haskell \
-    # extra \
-    # mtl \
-    # free
-

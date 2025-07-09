@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Retrieve VNC password from AWS SSM Parameter Store (secure string)
+VNC_PASSWORD=$(aws ssm get-parameter \
+  --name "/dev/general/vnc_password" \
+  --with-decryption \
+  --query "Parameter.Value" \
+  --output text)
+
+# Clear tmp files before anything else
+rm -rf /tmp/* /tmp/.[!.]* /tmp/..?* 2>/dev/null || true
 
 ### VNC
 
@@ -10,7 +19,6 @@ chmod 600 ~/.vnc/passwd
 
 # Start VNC server in the background, bound to localhost
 vncserver -localhost yes &
-
 
 ### SSH Server
 
