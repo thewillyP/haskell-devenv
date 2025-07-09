@@ -7,17 +7,15 @@ on:
       - 'main'
     tags:
       - 'v*'
-    paths-ignore:
-      - README.md
-      - '**/README.md'
-      - 'deploy/**'
-      - 'entrypoint.sh'
+    paths:
+      - 'Dockerfile'         
+      - '.github/workflows/**'          
   pull_request:
     branches:
       - 'main'
-    paths-ignore:
-      - README.md
-      - '**/README.md'
+    paths:
+      - 'Dockerfile'         
+      - '.github/workflows/**'  
 
 
 jobs:
