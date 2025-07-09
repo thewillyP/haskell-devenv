@@ -43,9 +43,7 @@ pipeline {
             steps {
                 script {
                     env.EXEC_HOST = sh(script: "hostname", returnStdout: true).trim()
-                    env.LOCAL_SCRIPT_DIR = "/tmp/${sh(script: 'head /dev/urandom | tr -dc a-z0-9 | head -c 8', returnStdout: true).trim()}"
                     echo "Executor Host: ${env.EXEC_HOST}"
-                    echo "Local Script Directory: ${env.LOCAL_SCRIPT_DIR}"
                 }
             }
         }
@@ -57,12 +55,6 @@ pipeline {
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[url: 'https://github.com/thewillyP/jenkins.git']]
                 ])
-                script {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} 'mkdir -p ${env.LOCAL_SCRIPT_DIR}'
-                        scp -o StrictHostKeyChecking=no submit_dns_job.sh ${defaults.sshUser}@${env.EXEC_HOST}:${env.LOCAL_SCRIPT_DIR}/
-                    """
-                }
             }
         }
 
@@ -80,19 +72,9 @@ pipeline {
             steps {
                 script {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} \\
-                        'bash ${env.LOCAL_SCRIPT_DIR}/submit_dns_job.sh \\
-                        ${env.RUN_JOB_ID} ${defaults.image} ${defaults.logDir} dns-update-${defaults.image} 1G 00:05:00 1 ${defaults.sshUser}'
-                    """
-                }
-            }
-        }
-
-        stage('Cleanup Remote Scripts') {
-            steps {
-                script {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} 'rm -rf ${env.LOCAL_SCRIPT_DIR}'
+                        ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} '
+                            bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "dns-update-${defaults.image}" "1G" "00:05:00" "1" "${defaults.sshUser}"
+                        ' < submit_dns_job.sh
                     """
                 }
             }
