@@ -73,7 +73,7 @@ pipeline {
                 script {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} '
-                            bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "dns-update-${defaults.image}" "1G" "00:05:00" "1" "${defaults.sshUser}"
+                            bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "dns-update-${defaults.image}" "256M" "00:05:00" "1" "${defaults.sshUser}"
                         ' < submit_dns_job.sh
                     """
                 }
