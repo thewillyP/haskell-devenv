@@ -11,7 +11,7 @@ properties([
         string(name: 'runMem', defaultValue: '14G', description: 'Memory to allocate for run'),
         string(name: 'binds', defaultValue: '/home/wlp9800/.awsvault,/home/wlp9800/.gnupg,/home/wlp9800/dev/asteroids:/home/wlp9800/asteroids', description: 'Bind paths for Singularity'),
         booleanParam(name: 'useGpu', defaultValue: false, description: 'Use GPU in the Singularity container'),
-        booleanParam(name: 'exclusive', defaultValue: true, description: 'Run with exclusive node access')
+        booleanParam(name: 'exclusive', defaultValue: false, description: 'Run with exclusive node access')
     ])
 ])
 
