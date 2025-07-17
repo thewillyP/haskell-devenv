@@ -12,7 +12,8 @@ properties([
         string(name: 'binds', defaultValue: '/home/wlp9800/.awsvault,/home/wlp9800/.gnupg,/home/wlp9800/dev/asteroids:/home/wlp9800/asteroids', description: 'Bind paths for Singularity'),
         booleanParam(name: 'useGpu', defaultValue: false, description: 'Use GPU in the Singularity container'),
         booleanParam(name: 'exclusive', defaultValue: false, description: 'Run with exclusive node access'),
-        string(name: 'proxyjump', defaultValue: 'greene', description: 'Proxyjump server for SSH access')
+        string(name: 'proxyjump', defaultValue: 'greene', description: 'Proxyjump server for SSH access'),
+        string(name: 'localForwards', defaultValue: '5901:localhost:5901', description: 'Comma-separated list of LocalForward rules (e.g., "8888:localhost:8245,9999:localhost:9000")')
     ])
 ])
 
@@ -34,7 +35,8 @@ def defaults = [
     binds: params.binds,
     useGpu: params.useGpu,
     exclusive: params.exclusive,
-    proxyjump: params.proxyjump
+    proxyjump: params.proxyjump,
+    localForwards: params.localForwards
 ]
 
 pipeline {
@@ -94,7 +96,7 @@ pipeline {
                             ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} '
                                 export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}";
                                 export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}";
-                                bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "1G" "00:05:00" "1" "${defaults.proxyjump}" "${env.SERVICE_PORT}"
+                                bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "1G" "00:05:00" "1" "${defaults.proxyjump}" "${env.SERVICE_PORT}" "${defaults.localForwards}"
                             ' < register_service.sh
                         """
                     }
