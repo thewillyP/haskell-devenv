@@ -11,7 +11,8 @@ properties([
         string(name: 'runMem', defaultValue: '14G', description: 'Memory to allocate for run'),
         string(name: 'binds', defaultValue: '/home/wlp9800/.awsvault,/home/wlp9800/.gnupg,/home/wlp9800/dev/asteroids:/home/wlp9800/asteroids', description: 'Bind paths for Singularity'),
         booleanParam(name: 'useGpu', defaultValue: false, description: 'Use GPU in the Singularity container'),
-        booleanParam(name: 'exclusive', defaultValue: false, description: 'Run with exclusive node access')
+        booleanParam(name: 'exclusive', defaultValue: false, description: 'Run with exclusive node access'),
+        string(name: 'proxyjump', defaultValue: 'greene', description: 'Proxyjump server for SSH access')
     ])
 ])
 
@@ -32,7 +33,8 @@ def defaults = [
     runMem: params.runMem,
     binds: params.binds,
     useGpu: params.useGpu,
-    exclusive: params.exclusive
+    exclusive: params.exclusive,
+    proxyjump: params.proxyjump
 ]
 
 pipeline {
@@ -44,6 +46,17 @@ pipeline {
                 script {
                     env.EXEC_HOST = sh(script: "hostname", returnStdout: true).trim()
                     echo "Executor Host: ${env.EXEC_HOST}"
+                }
+            }
+        }
+
+        stage('Generate Service Port') {
+            steps {
+                script {
+                    // Generate a random unprivileged port (1024-65535)
+                    def random = new Random()
+                    env.SERVICE_PORT = (random.nextInt(64512) + 1024).toString()
+                    echo "Generated service port: ${env.SERVICE_PORT}"
                 }
             }
         }
@@ -68,7 +81,7 @@ pipeline {
             }
         }
 
-        stage('Submit DNS Update Job') {
+        stage('Submit Service Registration Job') {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
@@ -81,8 +94,8 @@ pipeline {
                             ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} '
                                 export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}";
                                 export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}";
-                                bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "dns-update-${defaults.image}" "256M" "00:05:00" "1" "${defaults.sshUser}"
-                            ' < submit_dns_job.sh
+                                bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "1G" "00:05:00" "1" "${defaults.proxyjump}" "${env.SERVICE_PORT}"
+                            ' < register_service.sh
                         """
                     }
                 }
