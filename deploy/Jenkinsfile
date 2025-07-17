@@ -85,7 +85,7 @@ pipeline {
                             ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} '
                                 export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}";
                                 export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}";
-                                bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "1G" "00:05:00" "1" "${defaults.proxyjump}" "2222" "${defaults.localForwards}"
+                                bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "1G" "00:05:00" "1" "${defaults.proxyjump}" "2002" "${defaults.localForwards}"
                             ' < register_service.sh
                         """
                     }
