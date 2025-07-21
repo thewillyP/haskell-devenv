@@ -13,7 +13,8 @@ properties([
         booleanParam(name: 'useGpu', defaultValue: false, description: 'Use GPU in the Singularity container'),
         booleanParam(name: 'exclusive', defaultValue: false, description: 'Run with exclusive node access'),
         string(name: 'proxyjump', defaultValue: 'greene', description: 'Proxyjump server for SSH access'),
-        string(name: 'localForwards', defaultValue: '5901:localhost:5901', description: 'Comma-separated list of LocalForward rules (e.g., "8888:localhost:8245,9999:localhost:9000")')
+        string(name: 'localForwards', defaultValue: '5901:localhost:5901', description: 'Comma-separated list of LocalForward rules (e.g., "8888:localhost:8245,9999:localhost:9000")'),
+        string(name: 'execHost', defaultValue: 'greene.hpc.nyu.edu', description: 'Execution host for SSH commands')
     ])
 ])
 
@@ -36,22 +37,14 @@ def defaults = [
     useGpu: params.useGpu,
     exclusive: params.exclusive,
     proxyjump: params.proxyjump,
-    localForwards: params.localForwards
+    localForwards: params.localForwards,
+    execHost: params.execHost
 ]
 
 pipeline {
     agent any
 
     stages {
-        stage('Init Environment') {
-            steps {
-                script {
-                    env.EXEC_HOST = sh(script: "hostname", returnStdout: true).trim()
-                    echo "Executor Host: ${env.EXEC_HOST}"
-                }
-            }
-        }
-
         stage('Checkout Scripts') {
             steps {
                 checkout([
@@ -74,20 +67,22 @@ pipeline {
 
         stage('Submit Service Registration Job') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-credentials',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    script {
-                        sh """
-                            ssh -o StrictHostKeyChecking=no ${defaults.sshUser}@${env.EXEC_HOST} '
-                                export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}";
-                                export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}";
-                                bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "1G" "00:05:00" "1" "${defaults.proxyjump}" "2002" "${defaults.localForwards}"
-                            ' < register_service.sh
-                        """
+                sshagent(['greene-ssh-key']) {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws-credentials',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        script {
+                            sh """
+                                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${defaults.sshUser}@${defaults.execHost} '
+                                    export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}";
+                                    export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}";
+                                    bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "1G" "00:05:00" "1" "${defaults.proxyjump}" "2002" "${defaults.localForwards}"
+                                ' < register_service.sh
+                            """
+                        }
                     }
                 }
             }
