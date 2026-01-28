@@ -2,43 +2,68 @@
 
 properties([
     parameters([
-        booleanParam(name: 'forceRebuild', defaultValue: false, description: 'Force rebuild of the Singularity image'),
-        string(name: 'buildTime', defaultValue: '00:30:00', description: 'Build job time limit'),
-        string(name: 'buildCPUs', defaultValue: '8', description: 'CPUs to allocate for build'),
-        string(name: 'buildMem', defaultValue: '10G', description: 'Memory to allocate for build'),
-        string(name: 'runTime', defaultValue: '06:00:00', description: 'Run job time limit'),
-        string(name: 'runCPUs', defaultValue: '4', description: 'CPUs to allocate for run'),
-        string(name: 'runMem', defaultValue: '14G', description: 'Memory to allocate for run'),
+        choice(name: 'cluster', choices: ['torch', 'greene'], description: 'HPC cluster to use'),
+        booleanParam(name: 'force_rebuild', defaultValue: false, description: 'Force rebuild of the Singularity image'),
+        string(name: 'build_time', defaultValue: '00:30:00', description: 'Build job time limit'),
+        string(name: 'build_cpus', defaultValue: '8', description: 'CPUs to allocate for build'),
+        string(name: 'build_mem', defaultValue: '10G', description: 'Memory to allocate for build'),
+        string(name: 'run_time', defaultValue: '06:00:00', description: 'Run job time limit'),
+        string(name: 'run_cpus', defaultValue: '4', description: 'CPUs to allocate for run'),
+        string(name: 'run_mem', defaultValue: '14G', description: 'Memory to allocate for run'),
         string(name: 'binds', defaultValue: '/home/wlp9800/.awsvault,/home/wlp9800/.gnupg,/home/wlp9800/dev/asteroids:/home/wlp9800/asteroids', description: 'Bind paths for Singularity'),
-        booleanParam(name: 'useGpu', defaultValue: false, description: 'Use GPU in the Singularity container'),
+        booleanParam(name: 'use_gpu', defaultValue: false, description: 'Use GPU in the Singularity container'),
         booleanParam(name: 'exclusive', defaultValue: false, description: 'Run with exclusive node access'),
-        string(name: 'proxyjump', defaultValue: 'greene', description: 'Proxyjump server for SSH access'),
-        string(name: 'localForwards', defaultValue: '5901:localhost:5901', description: 'Comma-separated list of LocalForward rules (e.g., "8888:localhost:8245,9999:localhost:9000")'),
-        string(name: 'execHost', defaultValue: 'greene.hpc.nyu.edu', description: 'Execution host for SSH commands')
+        booleanParam(name: 'fakeroot', defaultValue: true, description: 'Run with --fakeroot for overlay write access'),
+        string(name: 'local_forwards', defaultValue: '5901:localhost:5901', description: 'Comma-separated list of LocalForward rules'),
+        string(name: 'entrypoint_repo', defaultValue: 'thewillyP/haskell-devenv', description: 'GitHub repo for entrypoint'),
+        string(name: 'entrypoint_commit', defaultValue: 'REPLACE_WITH_COMMIT_SHA', description: 'Commit SHA for entrypoint'),
+        string(name: 'entrypoint_path', defaultValue: 'entrypoint.sh', description: 'Path to entrypoint in repo'),
+        booleanParam(name: 'root_ssh', defaultValue: true, description: 'Run as root inside container (binds SSH to /root/.ssh, consul user is root)')
     ])
 ])
 
+def cluster_config = [
+    torch: [
+        overlay_src: '/share/apps/overlay-fs-ext3/overlay-50G-10M.ext3.gz',
+        account: 'torch_pr_466_general',
+        proxyjump: 'torch'
+    ],
+    greene: [
+        overlay_src: '/scratch/work/public/overlay-fs-ext3/overlay-50G-10M.ext3.gz',
+        account: '',
+        proxyjump: 'greene'
+    ]
+]
+
+def cfg = cluster_config[params.cluster]
+def ssh_user = 'wlp9800'
+def ssh_bind = params.root_ssh ? "/home/${ssh_user}/.ssh:/root/.ssh" : "/home/${ssh_user}/.ssh"
+def consul_ssh_user = params.root_ssh ? 'root' : ssh_user
+
 def defaults = [
-    sshUser: 'wlp9800',
+    cluster: params.cluster,
+    sshUser: ssh_user,
     image: 'haskell-devenv',
     scratchDir: '/scratch/wlp9800',
     logDir: '/vast/wlp9800/logs',
     dockerUrl: 'docker://thewillyp/haskell-devenv',
-    overlaySrc: '/scratch/wlp9800/haskell-devenv.ext3',
-    entrypointUrl: 'https://raw.githubusercontent.com/thewillyP/haskell-devenv/master/entrypoint.sh',
-    forceRebuild: params.forceRebuild,
-    buildTime: params.buildTime,
-    buildCPUs: params.buildCPUs,
-    buildMem: params.buildMem,
-    runTime: params.runTime,
-    runCPUs: params.runCPUs,
-    runMem: params.runMem,
+    overlaySrc: cfg.overlay_src,
+    entrypointRepo: params.entrypoint_repo,
+    entrypointCommit: params.entrypoint_commit,
+    entrypointPath: params.entrypoint_path,
+    forceRebuild: params.force_rebuild,
+    buildTime: params.build_time,
+    buildCPUs: params.build_cpus,
+    buildMem: params.build_mem,
+    runTime: params.run_time,
+    runCPUs: params.run_cpus,
+    runMem: params.run_mem,
     binds: params.binds,
-    useGpu: params.useGpu,
+    useGpu: params.use_gpu,
     exclusive: params.exclusive,
-    proxyjump: params.proxyjump,
-    localForwards: params.localForwards,
-    execHost: params.execHost
+    fakeroot: params.fakeroot,
+    account: cfg.account,
+    sshBind: ssh_bind
 ]
 
 pipeline {
@@ -58,31 +83,29 @@ pipeline {
         stage('Run Singularity Pipeline') {
             steps {
                 script {
-                    def runJobId = singularityPipeline(defaults)
-                    echo "Singularity run job id: ${runJobId}"
-                    env.RUN_JOB_ID = runJobId
+                    def run_job_id = singularityPipeline(defaults)
+                    echo "Singularity run job id: ${run_job_id}"
+                    env.RUN_JOB_ID = run_job_id
                 }
             }
         }
 
         stage('Submit Service Registration Job') {
             steps {
-                sshagent(['greene-ssh-key']) {
-                    withCredentials([[
-                        $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: 'aws-credentials',
-                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]]) {
-                        script {
-                            sh """
-                                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${defaults.sshUser}@${defaults.execHost} '
-                                    export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}";
-                                    export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}";
-                                    bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "1G" "00:05:00" "1" "${defaults.proxyjump}" "2002" "${defaults.localForwards}"
-                                ' < register_service.sh
-                            """
-                        }
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-credentials',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    script {
+                        sh """
+                            ssh ${params.cluster} '
+                                export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}";
+                                export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}";
+                                bash -s "${env.RUN_JOB_ID}" "${defaults.image}" "${defaults.logDir}" "2G" "00:05:00" "2" "${cfg.proxyjump}" "2002" "${params.local_forwards}" "${consul_ssh_user}" "0" "0" "${cfg.account}"
+                            ' < register_service.sh
+                        """
                     }
                 }
             }
