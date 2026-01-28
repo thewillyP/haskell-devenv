@@ -16,7 +16,7 @@ properties([
         booleanParam(name: 'fakeroot', defaultValue: true, description: 'Run with --fakeroot for overlay write access'),
         string(name: 'local_forwards', defaultValue: '5901:localhost:5901', description: 'Comma-separated list of LocalForward rules'),
         string(name: 'entrypoint_repo', defaultValue: 'thewillyP/haskell-devenv', description: 'GitHub repo for entrypoint'),
-        string(name: 'entrypoint_commit', defaultValue: 'REPLACE_WITH_COMMIT_SHA', description: 'Commit SHA for entrypoint'),
+        string(name: 'entrypoint_commit', defaultValue: '465d56b4bbbd3498d13d1beec254f939f472050f', description: 'Commit SHA for entrypoint'),
         string(name: 'entrypoint_path', defaultValue: 'entrypoint.sh', description: 'Path to entrypoint in repo'),
         booleanParam(name: 'root_ssh', defaultValue: true, description: 'Run as root inside container (binds SSH to /root/.ssh, consul user is root)')
     ])
