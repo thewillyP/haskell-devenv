@@ -45,7 +45,7 @@ def defaults = [
     sshUser: ssh_user,
     image: 'haskell-devenv',
     scratchDir: '/scratch/wlp9800',
-    logDir: '/vast/wlp9800/logs',
+    logDir: '/scratch/wlp9800/logs',
     dockerUrl: 'docker://thewillyp/haskell-devenv',
     overlaySrc: cfg.overlay_src,
     entrypointRepo: params.entrypoint_repo,
