@@ -4,9 +4,9 @@ properties([
     parameters([
         choice(name: 'cluster', choices: ['torch', 'greene'], description: 'HPC cluster to use'),
         booleanParam(name: 'force_rebuild', defaultValue: false, description: 'Force rebuild of the Singularity image'),
-        string(name: 'build_time', defaultValue: '00:30:00', description: 'Build job time limit'),
+        string(name: 'build_time', defaultValue: '00:40:00', description: 'Build job time limit'),
         string(name: 'build_cpus', defaultValue: '8', description: 'CPUs to allocate for build'),
-        string(name: 'build_mem', defaultValue: '10G', description: 'Memory to allocate for build'),
+        string(name: 'build_mem', defaultValue: '20G', description: 'Memory to allocate for build'),
         string(name: 'run_time', defaultValue: '06:00:00', description: 'Run job time limit'),
         string(name: 'run_cpus', defaultValue: '4', description: 'CPUs to allocate for run'),
         string(name: 'run_mem', defaultValue: '14G', description: 'Memory to allocate for run'),
