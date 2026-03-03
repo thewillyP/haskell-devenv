@@ -6,20 +6,20 @@ rm -rf /tmp/* /tmp/.[!.]* /tmp/..?* 2>/dev/null || true
 
 ### VNC
 
-# Retrieve VNC password from AWS SSM Parameter Store (secure string)
-VNC_PASSWORD=$(aws ssm get-parameter \
-  --name "/dev/general/vnc_password" \
-  --with-decryption \
-  --query "Parameter.Value" \
-  --output text)
+# # Retrieve VNC password from AWS SSM Parameter Store (secure string)
+# VNC_PASSWORD=$(aws ssm get-parameter \
+#   --name "/dev/general/vnc_password" \
+#   --with-decryption \
+#   --query "Parameter.Value" \
+#   --output text)
 
-# Set up VNC password
-mkdir -p ~/.vnc
-echo "$VNC_PASSWORD" | vncpasswd -f > ~/.vnc/passwd
-chmod 600 ~/.vnc/passwd
+# # Set up VNC password
+# mkdir -p ~/.vnc
+# echo "$VNC_PASSWORD" | vncpasswd -f > ~/.vnc/passwd
+# chmod 600 ~/.vnc/passwd
 
-# Start VNC server in the background, bound to localhost
-vncserver -localhost yes &
+# # Start VNC server in the background, bound to localhost
+# vncserver -localhost yes &
 
 ### SSH Server
 
