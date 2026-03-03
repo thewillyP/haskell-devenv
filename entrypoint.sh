@@ -2,32 +2,30 @@
 set -euo pipefail
 
 # Clear tmp files before anything else
-# rm -rf /tmp/* /tmp/.[!.]* /tmp/..?* 2>/dev/null || true
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-export LD_LIBRARY_PATH="/.singularity.d/libs${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-source /.singularity.d/env/10-docker2singularity.sh 2>/dev/null || true
-### VNC
+rm -rf /tmp/* /tmp/.[!.]* /tmp/..?* 2>/dev/null || true
 
-# # Retrieve VNC password from AWS SSM Parameter Store (secure string)
-# VNC_PASSWORD=$(aws ssm get-parameter \
-#   --name "/dev/general/vnc_password" \
-#   --with-decryption \
-#   --query "Parameter.Value" \
-#   --output text)
+## VNC
 
-# # Set up VNC password
-# mkdir -p ~/.vnc
-# echo "$VNC_PASSWORD" | vncpasswd -f > ~/.vnc/passwd
-# chmod 600 ~/.vnc/passwd
+# Retrieve VNC password from AWS SSM Parameter Store (secure string)
+VNC_PASSWORD=$(aws ssm get-parameter \
+  --name "/dev/general/vnc_password" \
+  --with-decryption \
+  --query "Parameter.Value" \
+  --output text)
 
-# # Start VNC server in the background, bound to localhost
-# vncserver -localhost yes &
+# Set up VNC password
+mkdir -p ~/.vnc
+echo "$VNC_PASSWORD" | vncpasswd -f > ~/.vnc/passwd
+chmod 600 ~/.vnc/passwd
+
+# Start VNC server in the background, bound to localhost
+vncserver -localhost yes &
 
 ### SSH Server
 
 # Fakeroot fixes (silent fail if not in fakeroot)
 # 1. Remap sshd user to uid 0 (fixes privsep security check)
-sed -i 's/^sshd:x:100:65534:/sshd:x:0:0:/' /etc/passwd 2>/dev/null || true
+sed -i 's/^sshd:x:[0-9]*:[0-9]*:/sshd:x:0:0:/' /etc/passwd 2>/dev/null || true
 # 2. Tar wrapper to skip chown (fixes tar for VS Code server and any other tarballs)
 (
 cat > /usr/local/bin/tar << 'EOF'
@@ -41,7 +39,7 @@ chmod +x /usr/local/bin/tar
 mkdir -p ~/hostkeys
 [ -f ~/hostkeys/ssh_host_rsa_key ] || ssh-keygen -q -N "" -t rsa -b 4096 -f ~/hostkeys/ssh_host_rsa_key
 
-/usr/sbin/sshd -D -d -e -p 2002 \
+exec /usr/sbin/sshd -D -p 2002 \
     -o PermitUserEnvironment=yes \
     -o PermitTTY=yes \
     -o X11Forwarding=yes \
