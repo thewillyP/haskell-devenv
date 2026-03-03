@@ -10,7 +10,7 @@ properties([
         string(name: 'run_time', defaultValue: '06:00:00', description: 'Run job time limit'),
         string(name: 'run_cpus', defaultValue: '4', description: 'CPUs to allocate for run'),
         string(name: 'run_mem', defaultValue: '14G', description: 'Memory to allocate for run'),
-        string(name: 'binds', defaultValue: '/home/wlp9800/.awsvault,/home/wlp9800/.gnupg,/home/wlp9800/dev/asteroids:/home/wlp9800/asteroids', description: 'Bind paths for Singularity'),
+        string(name: 'binds', defaultValue: '/home/wlp9800/dev:/root/dev', description: 'Bind paths for Singularity'),
         booleanParam(name: 'use_gpu', defaultValue: false, description: 'Use GPU in the Singularity container'),
         booleanParam(name: 'exclusive', defaultValue: false, description: 'Run with exclusive node access'),
         booleanParam(name: 'fakeroot', defaultValue: true, description: 'Run with --fakeroot for overlay write access'),
