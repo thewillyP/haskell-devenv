@@ -3,9 +3,9 @@ set -euo pipefail
 
 # Clear tmp files before anything else
 # rm -rf /tmp/* /tmp/.[!.]* /tmp/..?* 2>/dev/null || true
-source /.singularity.d/env/10-docker2singularity.sh 2>/dev/null || true
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export LD_LIBRARY_PATH="/.singularity.d/libs${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-
+source /.singularity.d/env/10-docker2singularity.sh 2>/dev/null || true
 ### VNC
 
 # # Retrieve VNC password from AWS SSM Parameter Store (secure string)
