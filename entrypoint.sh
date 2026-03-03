@@ -39,7 +39,7 @@ chmod +x /usr/local/bin/tar
 mkdir -p ~/hostkeys
 [ -f ~/hostkeys/ssh_host_rsa_key ] || ssh-keygen -q -N "" -t rsa -b 4096 -f ~/hostkeys/ssh_host_rsa_key
 
-exec /usr/sbin/sshd -D -p 2002 \
+exec /usr/sbin/sshd -D -p 2222 \
     -o PermitUserEnvironment=yes \
     -o PermitTTY=yes \
     -o X11Forwarding=yes \
