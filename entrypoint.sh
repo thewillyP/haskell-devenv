@@ -1,9 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Clear tmp files before anything else
-rm -rf /tmp/* /tmp/.[!.]* /tmp/..?* 2>/dev/null || true
-
 ## VNC
 
 # Retrieve VNC password from AWS SSM Parameter Store (secure string)
