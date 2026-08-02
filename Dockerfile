@@ -166,3 +166,6 @@ RUN stack install --resolver lts-23.21 \
     stylish-haskell \
     hoogle \
     ormolu
+
+
+COPY --chmod=755 entrypoint.sh /entrypoint.sh
